@@ -9,38 +9,50 @@ class App extends React.Component {
 
     this.state = {
       pets: [],
-      adoptedPets:[],
+      adoptedPets:true,
       filters: {
         type: 'all'
       }
     }
   }
-  //fetch the data
-     fetchData=()=>{
-       //Set up the URL to use
-       let url = '/api/pets';
-       //Set up  conditions for different inputs
+ //Update this.state.filters
+// When the input is changed(select, textarea, input)
+ onChangeType = (event)=> {
+   this.setState ({
+     //Spread operator allows to give the original value unchanged
+     filters:{
+     ...this.state.filters,
+     type: event.target.value
 
-       if(this.state.filters !=='all'){
-         // concat the url
-        return url = url + `?type=${this.state.filters.type}`
-       }
-       fetch(url)
-       .then(resp=>resp.js())
-       .then(pets=> this.setState(pets))
+   }
+ })
+ }
+  onFindPetsClick=()=> {
+    let endPoint = '/api/pets';
+    if(this.state.filters.type !=='all'){
+      //Allow to fech different types
+     endPoint = endPoint + `?type=${this.state.filters.type}`
+    }
+    // fetch
+    fetch(endPoint)
+    .then(resp =>resp.json())
+    //fetch all pets
+    .then(p => this.setState({p}))
+
   }
-  // update the filters type
-  handleChangeFilterType = type=>{
-    this.setState({
-      filters:{type:type}
-    })
+
+  onAdoptPet = (petId)=>{
+    //Iterate over the pets
+
+    const pets =this.state.pets.map(pet=>{
+      //Find the pets based on the PetId
+      return pet.id === petId ? {...pet , isAdopted:true} : pet })
+     this.setState({pets})
+
   }
-  handleAdoptedPets = petId=>{
-    this.setState({
-      adoptedPets: [...this.state.adoptedPets, petId],
-    })
-  }
+  
   render() {
+    
     return (
       <div className="ui container">
         <header>
@@ -50,17 +62,15 @@ class App extends React.Component {
           <div className="ui grid">
             <div className="four wide column">
               <Filters 
-              filters ={this.state.filters}
               
-              onChangeType={this.handleChangeFilterType} 
-              onFindPetsClick={this.fetchData}
+              onChangeType={this.onChangeType} 
+              onFindPetsClick={this.onFindPetsClick}
+             
               />
             </div>
             <div className="twelve wide column">
               <PetBrowser 
-              pets={this.state.pets}
-              adoptedPets={this.state.adoptedPets}
-            onAdoptPet={this.handleAdoptedPets}
+                onAdoptPet={this.onAdoptPet}
               />
             </div>
           </div>
